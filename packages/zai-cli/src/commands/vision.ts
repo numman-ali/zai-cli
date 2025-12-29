@@ -6,6 +6,7 @@ import { ZaiMcpClient } from '../lib/mcp-client.js';
 import { resolveImageSource, resolveVideoSource } from '../lib/image.js';
 import { outputSuccess } from '../lib/output.js';
 import { formatErrorOutput } from '../lib/errors.js';
+import { silenceConsole, restoreConsole } from '../lib/silence.js';
 
 type OutputType = 'code' | 'prompt' | 'spec' | 'description';
 
@@ -21,11 +22,17 @@ const DEFAULT_PROMPTS = {
 };
 
 async function withClient<T>(fn: (client: ZaiMcpClient) => Promise<T>): Promise<T> {
+  silenceConsole();
   const client = new ZaiMcpClient();
   try {
-    return await fn(client);
+    const result = await fn(client);
+    return result;
+  } catch (error) {
+    restoreConsole();
+    throw error;
   } finally {
     await client.close().catch(() => {});
+    restoreConsole();
   }
 }
 

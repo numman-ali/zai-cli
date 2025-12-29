@@ -5,6 +5,7 @@
 import { ZaiMcpClient } from '../lib/mcp-client.js';
 import { outputSuccess } from '../lib/output.js';
 import { formatErrorOutput } from '../lib/errors.js';
+import { silenceConsole, restoreConsole } from '../lib/silence.js';
 
 type RecencyFilter = 'oneDay' | 'oneWeek' | 'oneMonth' | 'oneYear' | 'noLimit';
 
@@ -20,6 +21,7 @@ export async function search(
   query: string,
   options: SearchOptions = {}
 ): Promise<void> {
+  silenceConsole();
   const client = new ZaiMcpClient({ enableVision: false });
   try {
     const results = await client.webSearch({
@@ -42,10 +44,12 @@ export async function search(
     const limited = options.count ? formattedResults.slice(0, options.count) : formattedResults;
     outputSuccess(limited);
   } catch (error) {
+    restoreConsole();
     console.error(formatErrorOutput(error));
     process.exit(1);
   } finally {
     await client.close().catch(() => {});
+    restoreConsole();
   }
 }
 

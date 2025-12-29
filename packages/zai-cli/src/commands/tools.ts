@@ -7,6 +7,7 @@ import { ZaiMcpClient } from '../lib/mcp-client.js';
 import { ZaiCodeModeClient } from '../lib/code-mode.js';
 import { outputSuccess } from '../lib/output.js';
 import { formatErrorOutput, ValidationError } from '../lib/errors.js';
+import { silenceConsole, restoreConsole } from '../lib/silence.js';
 
 async function readStdin(): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -26,19 +27,23 @@ export interface ToolsOptions {
 
 export async function listTools(options: ToolsOptions = {}): Promise<void> {
   if (options.typescript) {
+    silenceConsole();
     const codeClient = new ZaiCodeModeClient();
     try {
       const interfaces = await codeClient.getAllInterfaces();
       outputSuccess(interfaces);
     } catch (error) {
+      restoreConsole();
       console.error(formatErrorOutput(error));
       process.exit(1);
     } finally {
       await codeClient.close().catch(() => {});
+      restoreConsole();
     }
     return;
   }
 
+  silenceConsole();
   const client = new ZaiMcpClient();
   try {
     const tools = await client.listTools();
@@ -55,26 +60,32 @@ export async function listTools(options: ToolsOptions = {}): Promise<void> {
 
     outputSuccess(filtered.map((tool) => tool.name));
   } catch (error) {
+    restoreConsole();
     console.error(formatErrorOutput(error));
     process.exit(1);
   } finally {
     await client.close().catch(() => {});
+    restoreConsole();
   }
 }
 
 export async function showTool(name: string): Promise<void> {
+  silenceConsole();
   const client = new ZaiMcpClient();
   try {
     const tool = await client.getTool(name);
     if (!tool) {
+      restoreConsole();
       throw new ValidationError(`Unknown tool: ${name}`);
     }
     outputSuccess(tool);
   } catch (error) {
+    restoreConsole();
     console.error(formatErrorOutput(error));
     process.exit(1);
   } finally {
     await client.close().catch(() => {});
+    restoreConsole();
   }
 }
 
@@ -112,9 +123,20 @@ export async function callTool(
   toolName: string,
   options: CallToolOptions = {}
 ): Promise<void> {
+  let args: Record<string, unknown>;
+  try {
+    args = await parseToolArgs(options);
+  } catch (error) {
+    if (error instanceof SyntaxError) {
+      console.error(formatErrorOutput(new ValidationError(`Invalid JSON: ${error.message}`)));
+      process.exit(1);
+    }
+    throw error;
+  }
+
+  silenceConsole();
   const client = new ZaiMcpClient();
   try {
-    const args = await parseToolArgs(options);
     const resolved = await client.resolveToolName(toolName);
 
     if (options.dryRun) {
@@ -125,14 +147,12 @@ export async function callTool(
     const result = await client.callToolRaw(resolved, args);
     outputSuccess(result);
   } catch (error) {
-    if (error instanceof SyntaxError) {
-      console.error(formatErrorOutput(new ValidationError(`Invalid JSON: ${error.message}`)));
-      process.exit(1);
-    }
+    restoreConsole();
     console.error(formatErrorOutput(error));
     process.exit(1);
   } finally {
     await client.close().catch(() => {});
+    restoreConsole();
   }
 }
 

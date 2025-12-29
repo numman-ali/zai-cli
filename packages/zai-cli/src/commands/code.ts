@@ -6,6 +6,7 @@ import * as fs from 'node:fs/promises';
 import { ZaiCodeModeClient } from '../lib/code-mode.js';
 import { outputSuccess } from '../lib/output.js';
 import { formatErrorOutput } from '../lib/errors.js';
+import { silenceConsole, restoreConsole } from '../lib/silence.js';
 
 export interface CodeRunOptions {
   timeout?: number;
@@ -13,9 +14,11 @@ export interface CodeRunOptions {
 }
 
 export async function runCodeFile(filePath: string, options: CodeRunOptions = {}): Promise<void> {
+  const code = await fs.readFile(filePath, 'utf8');
+
+  silenceConsole();
   const codeClient = new ZaiCodeModeClient();
   try {
-    const code = await fs.readFile(filePath, 'utf8');
     const result = await codeClient.callToolChain(code, options.timeout);
     if (options.includeLogs) {
       outputSuccess(result);
@@ -23,14 +26,17 @@ export async function runCodeFile(filePath: string, options: CodeRunOptions = {}
       outputSuccess(result.result);
     }
   } catch (error) {
+    restoreConsole();
     console.error(formatErrorOutput(error));
     process.exit(1);
   } finally {
     await codeClient.close().catch(() => {});
+    restoreConsole();
   }
 }
 
 export async function evalCode(code: string, options: CodeRunOptions = {}): Promise<void> {
+  silenceConsole();
   const codeClient = new ZaiCodeModeClient();
   try {
     const result = await codeClient.callToolChain(code, options.timeout);
@@ -40,23 +46,28 @@ export async function evalCode(code: string, options: CodeRunOptions = {}): Prom
       outputSuccess(result.result);
     }
   } catch (error) {
+    restoreConsole();
     console.error(formatErrorOutput(error));
     process.exit(1);
   } finally {
     await codeClient.close().catch(() => {});
+    restoreConsole();
   }
 }
 
 export async function printInterfaces(): Promise<void> {
+  silenceConsole();
   const codeClient = new ZaiCodeModeClient();
   try {
     const interfaces = await codeClient.getAllInterfaces();
     outputSuccess(interfaces);
   } catch (error) {
+    restoreConsole();
     console.error(formatErrorOutput(error));
     process.exit(1);
   } finally {
     await codeClient.close().catch(() => {});
+    restoreConsole();
   }
 }
 

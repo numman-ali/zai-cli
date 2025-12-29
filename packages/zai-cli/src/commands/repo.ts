@@ -5,6 +5,7 @@
 import { ZReadMcpClient } from '../lib/mcp-client.js';
 import { outputSuccess } from '../lib/output.js';
 import { formatErrorOutput, ValidationError } from '../lib/errors.js';
+import { silenceConsole, restoreConsole } from '../lib/silence.js';
 
 function validateRepo(repo: string): void {
   if (!repo.includes('/')) {
@@ -18,32 +19,48 @@ export async function repoSearch(
   repo: string,
   query: string
 ): Promise<void> {
-  const client = new ZReadMcpClient({ enableVision: false });
   try {
     validateRepo(repo);
+  } catch (error) {
+    console.error(formatErrorOutput(error));
+    process.exit(1);
+  }
 
+  silenceConsole();
+  const client = new ZReadMcpClient({ enableVision: false });
+  try {
     const results = await client.searchDoc(repo, query);
     outputSuccess(results);
   } catch (error) {
+    restoreConsole();
     console.error(formatErrorOutput(error));
     process.exit(1);
   } finally {
     await client.close().catch(() => {});
+    restoreConsole();
   }
 }
 
 export async function repoTree(repo: string): Promise<void> {
-  const client = new ZReadMcpClient({ enableVision: false });
   try {
     validateRepo(repo);
+  } catch (error) {
+    console.error(formatErrorOutput(error));
+    process.exit(1);
+  }
 
+  silenceConsole();
+  const client = new ZReadMcpClient({ enableVision: false });
+  try {
     const structure = await client.getRepoStructure(repo);
     outputSuccess(structure);
   } catch (error) {
+    restoreConsole();
     console.error(formatErrorOutput(error));
     process.exit(1);
   } finally {
     await client.close().catch(() => {});
+    restoreConsole();
   }
 }
 
@@ -51,17 +68,25 @@ export async function repoRead(
   repo: string,
   path: string
 ): Promise<void> {
-  const client = new ZReadMcpClient({ enableVision: false });
   try {
     validateRepo(repo);
+  } catch (error) {
+    console.error(formatErrorOutput(error));
+    process.exit(1);
+  }
 
+  silenceConsole();
+  const client = new ZReadMcpClient({ enableVision: false });
+  try {
     const content = await client.readFile(repo, path);
     outputSuccess(content);
   } catch (error) {
+    restoreConsole();
     console.error(formatErrorOutput(error));
     process.exit(1);
   } finally {
     await client.close().catch(() => {});
+    restoreConsole();
   }
 }
 

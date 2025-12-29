@@ -5,6 +5,7 @@
 import { ZaiMcpClient } from '../lib/mcp-client.js';
 import { outputSuccess } from '../lib/output.js';
 import { formatErrorOutput, ValidationError } from '../lib/errors.js';
+import { silenceConsole, restoreConsole } from '../lib/silence.js';
 
 export interface ReadOptions {
   format?: 'markdown' | 'text';
@@ -18,13 +19,15 @@ export async function read(
   url: string,
   options: ReadOptions = {}
 ): Promise<void> {
+  // Validate URL first (before silencing)
+  if (!url.startsWith('http://') && !url.startsWith('https://')) {
+    console.error(formatErrorOutput(new ValidationError('URL must start with http:// or https://')));
+    process.exit(1);
+  }
+
+  silenceConsole();
   const client = new ZaiMcpClient({ enableVision: false });
   try {
-    // Validate URL
-    if (!url.startsWith('http://') && !url.startsWith('https://')) {
-      throw new ValidationError('URL must start with http:// or https://');
-    }
-
     const content = await client.webRead({
       url,
       format: options.format || 'markdown',
@@ -36,10 +39,12 @@ export async function read(
 
     outputSuccess(content);
   } catch (error) {
+    restoreConsole();
     console.error(formatErrorOutput(error));
     process.exit(1);
   } finally {
     await client.close().catch(() => {});
+    restoreConsole();
   }
 }
 

@@ -5,6 +5,7 @@
 import { ZaiMcpClient } from '../lib/mcp-client.js';
 import { outputSuccess } from '../lib/output.js';
 import { formatErrorOutput } from '../lib/errors.js';
+import { silenceConsole, restoreConsole } from '../lib/silence.js';
 
 export interface DoctorOptions {
   noTools?: boolean;
@@ -37,6 +38,7 @@ export async function doctor(options: DoctorOptions = {}): Promise<void> {
     return;
   }
 
+  silenceConsole();
   const client = new ZaiMcpClient();
   try {
     const tools = await client.listTools();
@@ -54,10 +56,12 @@ export async function doctor(options: DoctorOptions = {}): Promise<void> {
 
     outputSuccess(report);
   } catch (error) {
+    restoreConsole();
     console.error(formatErrorOutput(error));
     process.exit(1);
   } finally {
     await client.close().catch(() => {});
+    restoreConsole();
   }
 }
 
