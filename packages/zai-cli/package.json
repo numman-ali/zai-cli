@@ -1,6 +1,6 @@
 {
   "name": "zai-cli",
-  "version": "1.0.2",
+  "version": "1.1.0",
   "description": "CLI for Z.AI capabilities: vision analysis, web search, web reader, and GitHub repo exploration",
   "type": "module",
   "bin": {

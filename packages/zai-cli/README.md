@@ -99,9 +99,12 @@ zai-cli read https://blog.example.com --format text
 zai-cli repo tree facebook/react
 zai-cli repo search vercel/next.js "app router"
 zai-cli repo read anthropics/anthropic-sdk-python README.md
+zai-cli repo search openai/codex "config" --language en
+zai-cli repo tree openai/codex --path codex-rs --depth 2
 
 # Doctor - check setup
 zai-cli doctor
+zai-cli doctor --no-vision
 ```
 
 ## Output Format
@@ -116,9 +119,26 @@ Default output is **data-only** for token efficiency. Use `--output-format json`
 }
 ```
 
+## Notes
+
+- `repo search` defaults to English results. Use `--language zh` for Chinese.
+- `repo tree` supports `--path` (directory scope) and `--depth` (expand subtrees).
+- `tools`, `tool`, `call`, `doctor` accept `--no-vision` to speed startup when vision tools are not needed.
+- `read` supports `--with-images-summary`, `--no-gfm`, and `--keep-img-data-url` for richer parsing control.
+- Vision tool calls automatically retry transient 5xx/network errors (default: 2 retries). Configure with `ZAI_MCP_VISION_RETRY_COUNT` (or `ZAI_MCP_RETRY_COUNT` for all tools).
+- Tool discovery can be cached to speed `tools`/`tool`/`doctor` (default: on, 24h TTL). Configure with `ZAI_MCP_TOOL_CACHE`, `ZAI_MCP_TOOL_CACHE_TTL_MS`, `ZAI_MCP_CACHE_DIR`.
+
 ## Contributing
 
 See [CONTRIBUTING.md](https://github.com/numman-ali/zai-cli/blob/main/CONTRIBUTING.md) for development setup and guidelines.
+
+## Performance
+
+Benchmark tool discovery (cache on/off):
+
+```bash
+node scripts/bench-tools.mjs
+```
 
 ## License
 

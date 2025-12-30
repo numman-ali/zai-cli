@@ -9,6 +9,7 @@ import { silenceConsole, restoreConsole } from '../lib/silence.js';
 
 export interface DoctorOptions {
   noTools?: boolean;
+  enableVision?: boolean;
 }
 
 function getNodeMajor(): number {
@@ -39,7 +40,7 @@ export async function doctor(options: DoctorOptions = {}): Promise<void> {
   }
 
   silenceConsole();
-  const client = new ZaiMcpClient();
+  const client = new ZaiMcpClient({ enableVision: options.enableVision });
   try {
     const tools = await client.listTools();
     const byServer = tools.reduce<Record<string, number>>((acc, tool) => {
@@ -72,6 +73,7 @@ Usage: zai-cli doctor [options]
 
 Options:
   --no-tools   Skip tool discovery (env-only check)
+  --no-vision  Skip vision MCP server (faster startup)
 
 Examples:
   zai-cli doctor

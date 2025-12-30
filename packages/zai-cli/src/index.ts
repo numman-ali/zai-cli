@@ -10,8 +10,10 @@ import { listTools, showTool, callTool, TOOLS_HELP, CALL_HELP } from './commands
 import { doctor, DOCTOR_HELP } from './commands/doctor.js';
 import { runCodeFile, evalCode, printInterfaces, printPromptTemplate, CODE_HELP } from './commands/code.js';
 import { outputError, setOutputMode } from './lib/output.js';
+import { createRequire } from 'node:module';
 
-const VERSION = '1.0.0';
+const require = createRequire(import.meta.url);
+const { version: VERSION } = require('../package.json') as { version: string };
 
 const MAIN_HELP = `
 zai-cli v${VERSION} - CLI for Z.AI MCP services
@@ -229,6 +231,9 @@ async function handleRead(args: string[]): Promise<void> {
     noCache: flags['no-cache'] === true,
     withLinks: flags['with-links'] === true,
     timeout: flags.timeout ? parseInt(flags.timeout as string, 10) : undefined,
+    noGfm: flags['no-gfm'] === true,
+    keepImgDataUrl: flags['keep-img-data-url'] === true,
+    withImagesSummary: flags['with-images-summary'] === true,
   });
 }
 
@@ -249,14 +254,19 @@ async function handleRepo(args: string[]): Promise<void> {
       if (!repo || !query) {
         outputError('Missing repo or query', 'INVALID_ARGS', 'Usage: zai-cli repo search <owner/repo> <query>');
       }
-      await repoSearch(repo, query);
+      await repoSearch(repo, query, {
+        language: flags.language as 'en' | 'zh',
+      });
       break;
 
     case 'tree':
       if (!repo) {
         outputError('Missing repo', 'INVALID_ARGS', 'Usage: zai-cli repo tree <owner/repo>');
       }
-      await repoTree(repo);
+      await repoTree(repo, {
+        path: flags.path as string,
+        depth: flags.depth ? parseInt(flags.depth as string, 10) : undefined,
+      });
       break;
 
     case 'read':
@@ -284,6 +294,7 @@ async function handleTools(args: string[]): Promise<void> {
     filter: flags.filter as string,
     full: flags.full === true,
     typescript: flags.typescript === true || flags.ts === true,
+    enableVision: flags.vision !== false,
   });
 }
 
@@ -295,7 +306,7 @@ async function handleTool(args: string[]): Promise<void> {
     return;
   }
 
-  await showTool(positional[0]);
+  await showTool(positional[0], { enableVision: flags.vision !== false });
 }
 
 async function handleCall(args: string[]): Promise<void> {
@@ -311,6 +322,7 @@ async function handleCall(args: string[]): Promise<void> {
     file: flags.file as string,
     stdin: flags.stdin === true,
     dryRun: flags['dry-run'] === true,
+    enableVision: flags.vision !== false,
   });
 }
 
@@ -324,6 +336,7 @@ async function handleDoctor(args: string[]): Promise<void> {
 
   await doctor({
     noTools: flags['no-tools'] === true,
+    enableVision: flags.vision !== false,
   });
 }
 

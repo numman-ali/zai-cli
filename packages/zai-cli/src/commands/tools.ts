@@ -8,6 +8,7 @@ import { ZaiCodeModeClient } from '../lib/code-mode.js';
 import { outputSuccess } from '../lib/output.js';
 import { formatErrorOutput, ValidationError } from '../lib/errors.js';
 import { silenceConsole, restoreConsole } from '../lib/silence.js';
+import { redactTool } from '../lib/redact.js';
 
 async function readStdin(): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -23,6 +24,7 @@ export interface ToolsOptions {
   filter?: string;
   full?: boolean;
   typescript?: boolean;
+  enableVision?: boolean;
 }
 
 export async function listTools(options: ToolsOptions = {}): Promise<void> {
@@ -44,7 +46,7 @@ export async function listTools(options: ToolsOptions = {}): Promise<void> {
   }
 
   silenceConsole();
-  const client = new ZaiMcpClient();
+  const client = new ZaiMcpClient({ enableVision: options.enableVision });
   try {
     const tools = await client.listTools();
     const filtered = options.filter
@@ -54,7 +56,7 @@ export async function listTools(options: ToolsOptions = {}): Promise<void> {
       : tools;
 
     if (options.full) {
-      outputSuccess(filtered);
+      outputSuccess(filtered.map((tool) => redactTool(tool)));
       return;
     }
 
@@ -69,16 +71,16 @@ export async function listTools(options: ToolsOptions = {}): Promise<void> {
   }
 }
 
-export async function showTool(name: string): Promise<void> {
+export async function showTool(name: string, options: ToolsOptions = {}): Promise<void> {
   silenceConsole();
-  const client = new ZaiMcpClient();
+  const client = new ZaiMcpClient({ enableVision: options.enableVision });
   try {
     const tool = await client.getTool(name);
     if (!tool) {
       restoreConsole();
       throw new ValidationError(`Unknown tool: ${name}`);
     }
-    outputSuccess(tool);
+    outputSuccess(redactTool(tool));
   } catch (error) {
     restoreConsole();
     console.error(formatErrorOutput(error));
@@ -94,6 +96,7 @@ export interface CallToolOptions {
   file?: string;
   stdin?: boolean;
   dryRun?: boolean;
+  enableVision?: boolean;
 }
 
 async function parseToolArgs(options: CallToolOptions): Promise<Record<string, unknown>> {
@@ -135,7 +138,7 @@ export async function callTool(
   }
 
   silenceConsole();
-  const client = new ZaiMcpClient();
+  const client = new ZaiMcpClient({ enableVision: options.enableVision });
   try {
     const resolved = await client.resolveToolName(toolName);
 
@@ -168,6 +171,7 @@ Options:
   --filter <text>   Filter tools by name
   --full            Return full tool schemas
   --typescript      Output TypeScript interfaces (Code Mode)
+  --no-vision       Skip vision MCP server (faster startup)
 
 Examples:
   zai-cli tools
@@ -187,6 +191,7 @@ Options:
   --file <path>     Read JSON args from file
   --stdin           Read JSON args from stdin
   --dry-run         Print resolved tool name + args without calling
+  --no-vision       Skip vision MCP server (faster startup)
 
 Examples:
   zai-cli call zai.search.webSearchPrime --json '{"search_query":"LLM tools"}'

@@ -98,6 +98,9 @@ describe('CLI Help Commands', () => {
     assert.strictEqual(code, 0);
     assert.ok(stdout.includes('--format'));
     assert.ok(stdout.includes('markdown'));
+    assert.ok(stdout.includes('--with-images-summary'));
+    assert.ok(stdout.includes('--no-gfm'));
+    assert.ok(stdout.includes('--keep-img-data-url'));
   });
 
   it('should show repo help', async () => {
@@ -106,6 +109,9 @@ describe('CLI Help Commands', () => {
     assert.ok(stdout.includes('search'));
     assert.ok(stdout.includes('tree'));
     assert.ok(stdout.includes('read'));
+    assert.ok(stdout.includes('--language'));
+    assert.ok(stdout.includes('--path'));
+    assert.ok(stdout.includes('--depth'));
   });
 
   it('should show code help', async () => {

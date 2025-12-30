@@ -13,6 +13,9 @@ export interface ReadOptions {
   withLinks?: boolean;
   timeout?: number;
   noCache?: boolean;
+  noGfm?: boolean;
+  keepImgDataUrl?: boolean;
+  withImagesSummary?: boolean;
 }
 
 export async function read(
@@ -35,6 +38,9 @@ export async function read(
       withLinksSummary: options.withLinks,
       timeout: options.timeout,
       noCache: options.noCache,
+      noGfm: options.noGfm,
+      keepImgDataUrl: options.keepImgDataUrl,
+      withImagesSummary: options.withImagesSummary,
     });
 
     outputSuccess(content);
@@ -59,12 +65,16 @@ Options:
   --no-images     Remove images from output
   --no-cache      Disable server-side caching
   --with-links    Include links summary
+  --with-images-summary  Include images summary
+  --no-gfm        Disable GitHub Flavored Markdown
+  --keep-img-data-url  Keep image data URLs in output
   --timeout <s>   Request timeout in seconds (default: 20)
 
 Examples:
   zai-cli read https://docs.example.com/api
   zai-cli read https://github.com/owner/repo --format text
   zai-cli read https://blog.example.com/post --no-images --with-links
+  zai-cli read https://blog.example.com/post --with-images-summary
 
 Output format:
   Parsed page content (string or structured object)

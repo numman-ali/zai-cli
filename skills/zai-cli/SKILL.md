@@ -48,9 +48,12 @@ npx zai-cli search "React 19 new features" --count 5
 
 # Read a web page
 npx zai-cli read https://docs.example.com/api
+npx zai-cli read https://docs.example.com/api --with-images-summary --no-gfm
 
 # Explore a GitHub repo
 npx zai-cli repo search facebook/react "server components"
+npx zai-cli repo search openai/codex "config" --language en
+npx zai-cli repo tree openai/codex --path codex-rs --depth 2
 
 # Check setup
 npx zai-cli doctor
@@ -60,3 +63,8 @@ npx zai-cli doctor
 
 Default: **data-only** (raw output for token efficiency).
 Use `--output-format json` for `{ success, data, timestamp }` wrapping.
+
+## Advanced
+
+For raw MCP tool calls (`tools`, `tool`, `call`), Code Mode, and performance tuning (cache/retries),
+see `references/advanced.md`.
