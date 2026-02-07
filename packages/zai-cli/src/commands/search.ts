@@ -17,6 +17,28 @@ export interface SearchOptions {
   location?: 'cn' | 'us';
 }
 
+function normalizeSearchResults(input: unknown): Array<Record<string, unknown>> {
+  // Most common shape: array of result objects
+  if (Array.isArray(input)) return input as Array<Record<string, unknown>>;
+
+  // Sometimes MCP/tool wrappers return { results: [...] } or { data: [...] }
+  if (input && typeof input === 'object') {
+    const obj = input as Record<string, unknown>;
+
+    if (Array.isArray(obj.results)) return obj.results as Array<Record<string, unknown>>;
+    if (Array.isArray(obj.data)) return obj.data as Array<Record<string, unknown>>;
+    if (Array.isArray(obj.items)) return obj.items as Array<Record<string, unknown>>;
+
+    // Single-result object fallback
+    if ('title' in obj || 'link' in obj || 'url' in obj || 'content' in obj) {
+      return [obj];
+    }
+  }
+
+  // Graceful fallback for unknown/empty payloads
+  return [];
+}
+
 export async function search(
   query: string,
   options: SearchOptions = {}
@@ -24,7 +46,7 @@ export async function search(
   silenceConsole();
   const client = new ZaiMcpClient({ enableVision: false });
   try {
-    const results = await client.webSearch({
+    const rawResults = await client.webSearch({
       query,
       domainFilter: options.domain,
       recencyFilter: options.recency,
@@ -32,14 +54,19 @@ export async function search(
       location: options.location,
     });
 
-    const formattedResults = results.map((r, i) => ({
-      rank: i + 1,
-      title: r.title,
-      url: r.link,
-      summary: r.content,
-      source: r.media || undefined,
-      ...(r.publish_date && { date: r.publish_date }),
-    }));
+    const results = normalizeSearchResults(rawResults);
+
+    const formattedResults = results.map((r, i) => {
+      const date = (r.publish_date as string) || (r.date as string) || undefined;
+      return {
+        rank: i + 1,
+        title: (r.title as string) || '(untitled)',
+        url: (r.link as string) || (r.url as string) || '',
+        summary: (r.content as string) || (r.summary as string) || '',
+        source: (r.media as string) || (r.source as string) || undefined,
+        ...(date ? { date } : {}),
+      };
+    });
 
     const limited = options.count ? formattedResults.slice(0, options.count) : formattedResults;
     outputSuccess(limited);
