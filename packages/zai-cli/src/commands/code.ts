@@ -91,7 +91,7 @@ Options:
 
 Examples:
   zai-cli code run ./chain.ts
-  zai-cli code eval "const r = await zai.search.webSearchPrime({search_query:'ZAI'}); return r;"
+  zai-cli code eval "const r = await zai.search.web_search_prime({search_query:'ZAI'}); return r;"
   zai-cli code interfaces
   zai-cli code prompt
 `.trim();

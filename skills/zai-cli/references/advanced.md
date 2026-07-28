@@ -15,14 +15,14 @@ Use these when you need schemas or direct tool invocation.
 ```bash
 zai-cli tools --filter vision --full
 zai-cli tool zai.zread.search_doc --no-vision
-zai-cli call zai.search.webSearchPrime --json '{"search_query":"LLM tools"}'
+zai-cli call zai.search.web_search_prime --json '{"search_query":"LLM tools"}'
 ```
 
 ## Code Mode (TypeScript tool chains)
 
 ```bash
 zai-cli code run ./chain.ts
-zai-cli code eval "await call('zai.search.webSearchPrime', { search_query: 'zai cli' })"
+zai-cli code eval "await call('zai.search.web_search_prime', { search_query: 'zai cli' })"
 zai-cli code interfaces
 ```
 

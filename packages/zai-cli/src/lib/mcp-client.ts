@@ -416,7 +416,7 @@ export class ZaiMcpClient {
       args.location = params.location;
     }
 
-    return this.callTool<WebSearchResult[]>(getMcpToolName('search', 'webSearchPrime'), args);
+    return this.callTool<WebSearchResult[]>(getMcpToolName('search', 'web_search_prime'), args);
   }
 
   // ============ Web Reader Methods ============

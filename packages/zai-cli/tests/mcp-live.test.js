@@ -72,7 +72,7 @@ describeLive('MCP Live Tests', () => {
 
   it('includes expected core tools', () => {
     const expected = [
-      getMcpToolName('search', 'webSearchPrime'),
+      getMcpToolName('search', 'web_search_prime'),
       getMcpToolName('reader', 'webReader'),
       getMcpToolName('zread', 'search_doc'),
       getMcpToolName('zread', 'get_repo_structure'),
@@ -115,8 +115,8 @@ describeLive('MCP Live Tests', () => {
 
     const handlers = new Map();
 
-    handlers.set(getMcpToolName('search', 'webSearchPrime'), async () =>
-      client.callToolRaw(getMcpToolName('search', 'webSearchPrime'), {
+    handlers.set(getMcpToolName('search', 'web_search_prime'), async () =>
+      client.callToolRaw(getMcpToolName('search', 'web_search_prime'), {
         search_query: 'hello world',
         search_recency_filter: 'oneMonth',
         content_size: 'medium',
