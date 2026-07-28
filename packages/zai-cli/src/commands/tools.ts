@@ -194,7 +194,7 @@ Options:
   --no-vision       Skip vision MCP server (faster startup)
 
 Examples:
-  zai-cli call zai.search.webSearchPrime --json '{"search_query":"LLM tools"}'
+  zai-cli call zai.search.web_search_prime --json '{"search_query":"LLM tools"}'
   zai-cli call zai.reader.webReader --file ./args.json
   echo '{"repo_name":"owner/repo"}' | zai-cli call zai.zread.get_repo_structure --stdin
 `.trim();
